@@ -1,6 +1,6 @@
 {
   "name": "kensington-express",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Express middleware for function-based view rendering with kensington",
   "homepage": "https://github.com/ryanlsimms/kensington-express#readme",
   "bugs": {
