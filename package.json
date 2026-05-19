@@ -1,0 +1,39 @@
+{
+  "name": "kensington-express",
+  "version": "1.0.0",
+  "description": "Express middleware for function-based view rendering with kensington",
+  "homepage": "https://github.com/ryanlsimms/kensington-express#readme",
+  "bugs": {
+    "url": "https://github.com/ryanlsimms/kensington-express/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryanlsimms/kensington-express.git"
+  },
+  "license": "ISC",
+  "author": {
+    "name": "Ryan Lee Simms",
+    "url": "https://www.ryansimms.com"
+  },
+  "keywords": ["express", "middleware", "kensington", "views", "html"],
+  "engines": { "node": ">=20" },
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "pretest": "mkdir -p tests/typescript/node_modules && ln -sf \"$(pwd)\" tests/typescript/node_modules/kensington-express",
+    "test": "node --test && npm run test-ts",
+    "test-ts": "tsc -p tests/typescript/tsconfig.json"
+  },
+  "peerDependencies": {
+    "express": ">=4"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "typescript": "^6.0.3"
+  }
+}
