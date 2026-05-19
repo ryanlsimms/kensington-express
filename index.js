@@ -1,20 +1,25 @@
 /**
  * Express middleware that attaches `res.renderView(pageRenderer, options)` to each response.
  *
- * @param {Function|null} defaultLayout - Layout renderer, or null/undefined for no layout.
- * @param {Function} [htmlValidator] - Optional async HTML validation function.
+ * @param {object} [options]
+ * @param {Function} [options.defaultLayout] - Layout renderer. Omit for no layout.
+ * @param {Function} [options.htmlValidator] - Async HTML validation function.
  *   Runs after the response is sent (fire-and-forget). Rejections are forwarded to next().
+ * @param {Function} [options.buildLocals] - Custom locals builder: (req, res, options) => object.
+ *   When provided, replaces the default locals merging logic entirely.
  */
-function kensingtonView(defaultLayout, htmlValidator) {
+function kensingtonView({ defaultLayout, htmlValidator, buildLocals } = {}) {
 
   return function viewMiddleware(req, res, next) {
     res.renderView = function renderView(pageRenderer, options = {}) {
-      const locals = {
-        route: req.route,
-        ...req.app.locals,
-        ...res.locals,
-        ...options,
-      };
+      const locals = typeof buildLocals === 'function'
+        ? buildLocals(req, res, options)
+        : {
+            route: req.route,
+            ...req.app.locals,
+            ...res.locals,
+            ...options,
+          };
 
       const layoutRenderer = Object.hasOwn(options, 'layout') ? options.layout : defaultLayout;
 

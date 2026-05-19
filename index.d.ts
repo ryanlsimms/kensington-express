@@ -18,7 +18,16 @@ declare module 'express-serve-static-core' {
   }
 }
 
-export default function kensingtonView(
-  defaultLayout: LayoutRenderer | null | undefined,
-  htmlValidator?: (html: string) => void | Promise<void>,
-): RequestHandler;
+export type BuildLocals = (
+  req: import('express').Request,
+  res: import('express').Response,
+  options: RenderViewOptions,
+) => Record<string, unknown>;
+
+export interface KensingtonOptions {
+  defaultLayout?: LayoutRenderer | null;
+  htmlValidator?: (html: string) => void | Promise<void>;
+  buildLocals?: BuildLocals;
+}
+
+export default function kensingtonView(options?: KensingtonOptions): RequestHandler;

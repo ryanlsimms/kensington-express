@@ -20,7 +20,7 @@ function makeRes(overrides = {}) {
 }
 
 function setup(defaultLayout, htmlValidator) {
-  const middleware = kensingtonView(defaultLayout, htmlValidator);
+  const middleware = kensingtonView({ defaultLayout, htmlValidator });
   const req = makeReq();
   const res = makeRes();
   const next = mock.fn();
@@ -41,7 +41,7 @@ describe('kensingtonView', () => {
 // ─── res.renderView ─────────────────────────────────────────────────────────
 
 describe('res.renderView', () => {
-  it('renders page without layout when defaultLayout is null', () => {
+  it('renders page without layout when defaultLayout is omitted', () => {
     const { res } = setup(null);
     res.renderView(() => '<p>hello</p>');
     assert.equal(res.send.mock.calls[0].arguments[0], '<p>hello</p>');
@@ -70,7 +70,7 @@ describe('res.renderView', () => {
   });
 
   it('merges locals with correct priority: app < res < options', () => {
-    const middleware = kensingtonView(null);
+    const middleware = kensingtonView();
     const req = makeReq({ app: { locals: { a: 'app', b: 'app' } } });
     const res = makeRes({ locals: { b: 'res', c: 'res' } });
     const next = mock.fn();
@@ -87,7 +87,7 @@ describe('res.renderView', () => {
 
   it('includes req.route in locals', () => {
     const route = { path: '/test' };
-    const middleware = kensingtonView(null);
+    const middleware = kensingtonView();
     const req = makeReq({ route });
     const res = makeRes();
     const next = mock.fn();
@@ -96,6 +96,27 @@ describe('res.renderView', () => {
     let captured;
     res.renderView((locals) => { captured = locals; return ''; });
     assert.equal(captured.route, route);
+  });
+
+  it('uses buildLocals to construct locals when provided', () => {
+    const buildLocals = (req, res, options) => ({
+      flash: req.session?.flash,
+      req,
+      ...options,
+    });
+    const middleware = kensingtonView({ buildLocals });
+    const req = makeReq({ session: { flash: ['saved!'] } });
+    const res = makeRes();
+    const next = mock.fn();
+    middleware(req, res, next);
+
+    let captured;
+    res.renderView((locals) => { captured = locals; return ''; }, { foo: 'bar' });
+
+    assert.deepEqual(captured.flash, ['saved!']);
+    assert.equal(captured.req, req);
+    assert.equal(captured.foo, 'bar');
+    assert.equal(captured.route, undefined);
   });
 
   it('forwards render errors to next', () => {
