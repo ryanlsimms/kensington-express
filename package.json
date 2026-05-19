@@ -1,6 +1,6 @@
 {
   "name": "kensington-express",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Express middleware for function-based view rendering with kensington",
   "homepage": "https://github.com/ryanlsimms/kensington-express#readme",
   "bugs": {
@@ -15,8 +15,16 @@
     "name": "Ryan Lee Simms",
     "url": "https://www.ryansimms.com"
   },
-  "keywords": ["express", "middleware", "kensington", "views", "html"],
-  "engines": { "node": ">=20" },
+  "keywords": [
+    "express",
+    "middleware",
+    "kensington",
+    "views",
+    "html"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
   "main": "index.js",
   "types": "index.d.ts",
