@@ -4,24 +4,26 @@ import type { PageRenderer, LayoutRenderer } from 'kensington-express';
 
 // ─── kensingtonView factory ──────────────────────────────────────────────────
 
-const _a: RequestHandler = kensingtonView(null);
-const _b: RequestHandler = kensingtonView(undefined);
+const _a: RequestHandler = kensingtonView();
+const _b: RequestHandler = kensingtonView({});
 
 const layout: LayoutRenderer = function(locals, page) {
   return page(locals);
 };
-const _c: RequestHandler = kensingtonView(layout);
+const _c: RequestHandler = kensingtonView({ defaultLayout: layout });
 
-const _d: RequestHandler = kensingtonView(layout, async (html: string) => {
+const _d: RequestHandler = kensingtonView({ defaultLayout: layout, htmlValidator: async (html: string) => {
   console.log(html);
-});
+}});
 
-const _e: RequestHandler = kensingtonView(layout, (html: string) => {
+const _e: RequestHandler = kensingtonView({ defaultLayout: layout, htmlValidator: (html: string) => {
   console.log(html);
-});
+}});
+
+const _f: RequestHandler = kensingtonView({ buildLocals: (req, res, options) => ({ req, ...options }) });
 
 // @ts-expect-error - htmlValidator must be a function
-kensingtonView(layout, 'not a function');
+kensingtonView({ htmlValidator: 'not a function' });
 
 // ─── res.renderView augmentation ─────────────────────────────────────────────
 
