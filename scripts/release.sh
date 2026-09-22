@@ -28,17 +28,6 @@ if [[ -n "$(git status --porcelain)" ]]; then
   exit 1
 fi
 
-TOKEN_UPDATED=$(gh secret list --json name,updatedAt --jq '.[] | select(.name == "NPM_TOKEN") | .updatedAt' 2>/dev/null || true)
-if [[ -n "$TOKEN_UPDATED" ]]; then
-  TOKEN_EPOCH=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "$TOKEN_UPDATED" +%s 2>/dev/null)
-  if [[ -n "$TOKEN_EPOCH" ]]; then
-    DAYS_OLD=$(( ($(date +%s) - TOKEN_EPOCH) / 86400 ))
-    if [[ $DAYS_OLD -ge 80 ]]; then
-      echo "Warning: the GitHub NPM_TOKEN secret was last updated ${DAYS_OLD} days ago — verify the token's expiration in npm before releasing"
-    fi
-  fi
-fi
-
 if [[ "$IS_PRERELEASE" == true ]]; then
   npm version "$1" --preid="$PREID" --no-git-tag-version
 else

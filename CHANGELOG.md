@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Switched GitHub Actions publishing to npm Trusted Publishing with GitHub OIDC, removing the long-lived `NPM_TOKEN` requirement.
+
 ## [1.0.6] - 2026-09-22
 
 - Updated the README to correct usage.
