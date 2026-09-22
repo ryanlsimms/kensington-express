@@ -28,16 +28,13 @@ if [[ -n "$(git status --porcelain)" ]]; then
   exit 1
 fi
 
-TOKEN_UPDATED=$(gh secret list 2>/dev/null | awk '/^NPM_TOKEN/ { print $2 }')
+TOKEN_UPDATED=$(gh secret list --json name,updatedAt --jq '.[] | select(.name == "NPM_TOKEN") | .updatedAt' 2>/dev/null || true)
 if [[ -n "$TOKEN_UPDATED" ]]; then
   TOKEN_EPOCH=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "$TOKEN_UPDATED" +%s 2>/dev/null)
   if [[ -n "$TOKEN_EPOCH" ]]; then
     DAYS_OLD=$(( ($(date +%s) - TOKEN_EPOCH) / 86400 ))
-    if [[ $DAYS_OLD -ge 90 ]]; then
-      echo "Error: NPM_TOKEN is ${DAYS_OLD} days old and has expired — rotate it before releasing (see CONTRIBUTING.md)"
-      exit 1
-    elif [[ $DAYS_OLD -ge 80 ]]; then
-      echo "Warning: NPM_TOKEN is ${DAYS_OLD} days old and will expire soon — rotate it after this release (see CONTRIBUTING.md)"
+    if [[ $DAYS_OLD -ge 80 ]]; then
+      echo "Warning: the GitHub NPM_TOKEN secret was last updated ${DAYS_OLD} days ago — verify the token's expiration in npm before releasing"
     fi
   fi
 fi
