@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Updated the README to correct usage.
+
 ## [1.0.3] - 2026-05-19
 
 - Added `@types/express` as a `peerDependency` so TypeScript types resolve correctly. npm 7+ installs it automatically; older npm requires a manual `npm install @types/express`.
