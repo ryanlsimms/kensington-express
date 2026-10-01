@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.7] - 2026-10-01
 
 - Fixed: page renderers now receive `this` as the response when no layout is applied.
 - Fixed: a failing `htmlValidator` no longer calls `next(err)` after the response is sent; it is logged instead.
