@@ -4,7 +4,8 @@
  * @param {{ defaultLayout?: Function, htmlValidator?: Function, buildLocals?: Function }} [options]
  * @param {Function} [options.defaultLayout] - Layout renderer. Omit for no layout.
  * @param {Function} [options.htmlValidator] - Async HTML validation function.
- *   Runs after the response is sent (fire-and-forget). Rejections are forwarded to next().
+ *   Runs after the response is sent (fire-and-forget). Failures are logged with
+ *   console.error once headers are sent, and forwarded to next() otherwise.
  * @param {Function} [options.buildLocals] - Custom locals builder: (req, res, options) => object.
  *   When provided, replaces the default locals merging logic entirely.
  * @returns {function(import('express').Request, import('express').Response, import('express').NextFunction): void}
@@ -30,7 +31,7 @@ function kensingtonView({ defaultLayout, htmlValidator, buildLocals } = {}) {
         if (typeof layoutRenderer === 'function') {
           html = layoutRenderer.call(res, locals, pageRenderer.bind(res)).toString();
         } else {
-          html = pageRenderer(locals).toString();
+          html = pageRenderer.call(res, locals).toString();
         }
       } catch (err) {
         return next(err);
@@ -39,7 +40,21 @@ function kensingtonView({ defaultLayout, htmlValidator, buildLocals } = {}) {
       res.send(html);
 
       if (typeof htmlValidator === 'function') {
-        Promise.resolve(htmlValidator(html)).catch(next);
+        // The response is already sent, so an error can't be rendered as one:
+        // forwarding to next() would reach an error handler that tries to send
+        // again, or Express's default handler, which destroys the socket.
+        function reportValidatorError(err) {
+          if (res.headersSent) {
+            console.error('[kensington-express] htmlValidator failed:', err);
+          } else {
+            next(err);
+          }
+        }
+        try {
+          Promise.resolve(htmlValidator(html)).catch(reportValidatorError);
+        } catch (err) {
+          reportValidatorError(err);
+        }
       }
     };
 

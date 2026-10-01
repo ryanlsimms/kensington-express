@@ -1,11 +1,14 @@
 import type { NextFunction, Request, Response } from 'express';
 
-export type PageRenderer = (locals: Record<string, unknown>) => { toString(): string };
+export type PageRenderer = (
+  this: Response,
+  locals: Record<string, unknown>,
+) => { toString(): string };
 
 export type LayoutRenderer = (
   this: Response,
   locals: Record<string, unknown>,
-  pageRenderer: PageRenderer,
+  pageRenderer: (locals: Record<string, unknown>) => { toString(): string },
 ) => { toString(): string };
 
 export interface RenderViewOptions extends Record<string, unknown> {
@@ -15,7 +18,7 @@ export interface RenderViewOptions extends Record<string, unknown> {
 declare module 'express-serve-static-core' {
   interface Response {
     renderView(
-      pageRenderer: (locals: Record<string, unknown>) => { toString(): string },
+      pageRenderer: (this: Response, locals: Record<string, unknown>) => { toString(): string },
       options?: Record<string, unknown> & {
         layout?: ((this: Response, locals: Record<string, unknown>, pageRenderer: (locals: Record<string, unknown>) => { toString(): string }) => { toString(): string }) | null;
       },

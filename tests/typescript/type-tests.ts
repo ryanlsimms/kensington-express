@@ -55,3 +55,13 @@ const _layoutWithThis: LayoutRenderer = function(locals, page) {
   const _self: Response = this;
   return page(locals);
 };
+
+// page renderers receive res as `this`
+const _pageWithThis: PageRenderer = function(locals) {
+  const _self: Response = this;
+  return `<p>${locals['title']}</p>`;
+};
+res.renderView(function(locals) {
+  const _self: Response = this;
+  return `<p>${locals['title']}</p>`;
+});

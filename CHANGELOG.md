@@ -2,7 +2,8 @@
 
 ## [Unreleased]
 
-- Switched GitHub Actions publishing to npm Trusted Publishing with GitHub OIDC, removing the long-lived `NPM_TOKEN` requirement.
+- Fixed: page renderers now receive `this` as the response when no layout is applied.
+- Fixed: a failing `htmlValidator` no longer calls `next(err)` after the response is sent; it is logged instead.
 
 ## [1.0.6] - 2026-09-22
 

@@ -69,6 +69,38 @@ describe('res.renderView', () => {
     assert.equal(res.send.mock.calls[0].arguments[0], '<p>hello</p>');
   });
 
+  it('calls the page renderer with res as this when there is no layout', () => {
+    const { res } = setup(null);
+    let self;
+    res.renderView(function() {
+      self = this;
+      return '<p>hello</p>';
+    });
+    assert.equal(self, res);
+  });
+
+  it('calls the page renderer with res as this when options.layout is null', () => {
+    const layout = (locals, page) => `<html>${page(locals)}</html>`;
+    const { res } = setup(layout);
+    let self;
+    res.renderView(function() {
+      self = this;
+      return '<p>hello</p>';
+    }, { layout: null });
+    assert.equal(self, res);
+  });
+
+  it('calls the page renderer with res as this inside a layout', () => {
+    const layout = (locals, page) => `<html>${page(locals)}</html>`;
+    const { res } = setup(layout);
+    let self;
+    res.renderView(function() {
+      self = this;
+      return '<p>hello</p>';
+    });
+    assert.equal(self, res);
+  });
+
   it('merges locals with correct priority: app < res < options', () => {
     const middleware = kensingtonView();
     const req = makeReq({ app: { locals: { a: 'app', b: 'app' } } });
@@ -149,7 +181,7 @@ describe('htmlValidator', () => {
     assert.equal(validator.mock.calls[0].arguments[0], '<p>hello</p>');
   });
 
-  it('forwards validator rejections to next', async () => {
+  it('forwards validator rejections to next while headers are not sent', async () => {
     const err = new Error('validation failed');
     const validator = mock.fn(async () => { throw err; });
     const { res, next } = setup(null, validator);
@@ -157,6 +189,33 @@ describe('htmlValidator', () => {
 
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(next.mock.calls.at(-1).arguments[0], err);
+  });
+
+  it('logs instead of forwarding validator rejections once headers are sent', async t => {
+    const err = new Error('validation failed');
+    const logError = t.mock.method(console, 'error', () => {});
+    const validator = mock.fn(async () => { throw err; });
+    const middleware = kensingtonView({ htmlValidator: validator });
+    const res = makeRes({ headersSent: true });
+    const next = mock.fn();
+    middleware(makeReq(), res, next);
+    res.renderView(() => '<p>hello</p>');
+
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(next.mock.calls.length, 1); // only the middleware's own next()
+    assert.equal(logError.mock.calls.length, 1);
+    assert.equal(logError.mock.calls[0].arguments[1], err);
+  });
+
+  it('handles validators that throw synchronously', t => {
+    const err = new Error('sync failure');
+    const logError = t.mock.method(console, 'error', () => {});
+    const middleware = kensingtonView({ htmlValidator: () => { throw err; } });
+    const res = makeRes({ headersSent: true });
+    middleware(makeReq(), res, mock.fn());
+
+    assert.doesNotThrow(() => res.renderView(() => '<p>hello</p>'));
+    assert.equal(logError.mock.calls[0].arguments[1], err);
   });
 
   it('send is not blocked by validator', async () => {

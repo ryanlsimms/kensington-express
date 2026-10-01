@@ -69,7 +69,7 @@ Renders and sends an HTML response.
 
 | Parameter | Type | Description |
 |---|---|---|
-| `pageRenderer` | `(locals) => { toString(): string }` | Renders the page content. Plain strings are supported. |
+| `pageRenderer` | `(locals) => { toString(): string }` | Renders the page content. Plain strings are supported. Called with `this` set to the response. |
 | `options` | `object` | Merged into locals. Pass `layout` to override the default layout for this response. |
 
 By default, locals available to both renderers are merged in this order (later values win):
@@ -80,6 +80,8 @@ By default, locals available to both renderers are merged in this order (later v
 4. `options` passed to `renderView`
 
 When `buildLocals` is provided, it receives `(req, res, options)` and its return value replaces this default merge.
+
+Layouts and page renderers are both called with `this` set to the response, so a `function` renderer can read `this.req`. This also holds when `layout: null` or no `defaultLayout` is set. Arrow functions don't receive `this`; use `buildLocals` or `res.locals` to pass request data to them.
 
 ## Layouts
 
@@ -125,7 +127,7 @@ Install `html-validate` if you want to validate rendered markup during developme
 npm install --save-dev html-validate
 ```
 
-Pass an `htmlValidator` function to report markup issues. The response is sent before validation runs:
+Pass an `htmlValidator` function to report markup issues. The response is sent before validation runs, so a validator that throws or rejects can't change the response. Once headers are sent, its error is logged with `console.error` instead of being passed to `next()`:
 
 ```js
 import { HtmlValidate } from 'html-validate';
